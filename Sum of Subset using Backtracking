@@ -1,0 +1,37 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+bool foundAny = false;
+
+// Dynamic array structure to store found subsets
+int **allSubsets = NULL;
+int *subsetSizes = NULL;
+int subsetCount = 0;
+int maxSubsets = 2000;
+
+// Backtracking function moving from index 0 to n-1 (Include before Exclude)
+void findSubsets(int arr[], int n, int index, int target, int currentSubset[], int subsetSize) {
+    // Base Case: Target sum reached
+    if (target == 0) {
+        foundAny = true;
+        
+        // Save the found subset to print in reverse later
+        allSubsets[subsetCount] = (int *)malloc(subsetSize * sizeof(int));
+        subsetSizes[subsetCount] = subsetSize;
+        for (int i = 0; i < subsetSize; i++) {
+            allSubsets[subsetCount][i] = currentSubset[i];
+        }
+        subsetCount++;
+        return;
+    }
+
+    // Base Case: Out of bounds or target exceeded
+    if (index == n || target < 0) {
+        return;
+    }
+
+    // 1. INCLUDE the current element first
+    currentSubset[subsetSize] = arr[index];
+    findSubsets(arr, n, index + 1, target - arr[index], currentSubset, subsetSize + 1);
+}
