@@ -1,0 +1,101 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#define INF 1e9
+
+typedef struct {
+    int src, dest, weight;
+} Edge;
+
+// FIXED: Correctly passes the parent node up the chain and maintains 'src'
+void printPath(int parent[], int vertex, int src) {
+    if (vertex == src) {
+        printf("%d", src);
+        return;
+    }
+    printPath(parent, parent[vertex], src);
+    printf("->%d", vertex);
+}
+
+void bellmanFord(int V, int E, Edge edges[], int src) {
+    int *dist = (int *)malloc((V + 1) * sizeof(int));
+    int *parent = (int *)malloc((V + 1) * sizeof(int));
+
+    for (int i = 1; i <= V; i++) {
+        dist[i] = INF;
+        parent[i] = -1;
+    }
+    dist[src] = 0;
+
+    // Relax all edges V - 1 times
+    for (int i = 1; i <= V - 1; i++) {
+        for (int j = 0; j < E; j++) {
+            int u = edges[j].src;
+            int v = edges[j].dest;
+            int weight = edges[j].weight;
+            
+            if (dist[u] != INF && dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                parent[v] = u;
+            }
+        }
+    }
+
+    // Check for negative-weight cycles
+    bool negativeCycle = false;
+    for (int j = 0; j < E; j++) {
+        int u = edges[j].src;
+        int v = edges[j].dest;
+        int weight = edges[j].weight;
+        
+        if (dist[u] != INF && dist[u] + weight < dist[v]) {
+            negativeCycle = true;
+            break;
+        }
+    }
+
+    if (negativeCycle) {
+        printf("Negative cycle detected\n");
+    } else {
+        for (int i = 1; i <= V; i++) {
+            if (i == src) continue;
+
+            if (dist[i] >= INF / 2) { 
+                printf("%d INF None\n", i);
+            } else {
+                printf("%d %d ", i, dist[i]);
+                printPath(parent, i, src);
+                printf("\n");
+            }
+        }
+    }
+
+    free(dist);
+    free(parent);
+}
+
+int main() {
+    int V, E;
+    if (scanf("%d", &V) != 1) return 0;
+    if (scanf("%d", &E) != 1) return 0;
+
+    Edge *edges = (Edge *)malloc(E * sizeof(Edge));
+    for (int i = 0; i < E; i++) {
+        if (scanf("%d %d %d", &edges[i].src, &edges[i].dest, &edges[i].weight) != 3) {
+            free(edges);
+            return 0;
+        }
+    }
+
+    int src;
+    if (scanf("%d", &src) != 1) {
+        free(edges);
+        return 0;
+    }
+
+    bellmanFord(V, E, edges, src);
+
+    free(edges);
+    return 0;
+}
